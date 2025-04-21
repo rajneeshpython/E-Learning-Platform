@@ -11,14 +11,14 @@
             <ul id="modules">
                 {% for m in course.modules.all %}
                     <li data-id="{{ m.id }}" {% if m == module %}
-                        class="selected"{% endif %}>
-                        <a href="{% url "module_content_list" m.id %}">
-                        <span>
-                        Module <span class="order">{{ m.order|add:1 }}</span>
-                        </span>
-                            <br>{{ m.title }}
-                        </a>
-                    </li>
+                            class="selected"{% endif %}>
+                            <a href="{% url "module_content_list" m.id %}">
+                                <span>
+                                    Module <span class="order">{{ m.order|add:1 }}</span>
+                                </span>
+                                <br>{{ m.title }}
+                            </a>
+                        </li>
                 {% empty %}
                     <li>No modules yet.</li>
                 {% endfor %}
@@ -73,4 +73,31 @@
             </ul>
         </div>
     {% endwith %}
+{% endblock %}
+{% block include_js %}
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html5sortable/0.13.3/html5sortable.min.js"></script>
+{% endblock %}
+
+{% block domready %}
+    var options = {
+    method: 'POST',
+    mode: 'same-origin'
+    }
+
+    const contentOrderUrl = '{% url "content_order" %}';
+    sortable('#module-contents', {
+    forcePlaceholderSize: true,
+    placeholderClass: 'placeholder'
+    })[0].addEventListener('sortupdate', function(e) {
+    contentOrder = {};
+    var contents = document.querySelectorAll('#module-contents div');
+    contents.forEach(function (content, index) {
+    // update content index
+    contentOrder[content.dataset.id] = index;
+    });
+    // add new order to the HTTP request options
+    options['body'] = JSON.stringify(contentOrder);
+    // send HTTP request
+    fetch(contentOrderUrl, options)
+    });
 {% endblock %}
